@@ -1,20 +1,21 @@
-import random
 import os
+import random
+
+import numpy as np
 import torch.backends.cudnn as cudnn
 import torch.optim as optim
 import torch.utils.data
-from dataset.data_loader import GetLoader
-from torchvision import datasets
-from torchvision import transforms
-from models.model import CNNModel
-import numpy as np
 from test import test
+from torchvision import datasets, transforms
 
-source_dataset_name = 'MNIST'
-target_dataset_name = 'mnist_m'
-source_image_root = os.path.join('..', 'dataset', source_dataset_name)
-target_image_root = os.path.join('..', 'dataset', target_dataset_name)
-model_root = os.path.join('..', 'models')
+from dataset.data_loader import GetLoader
+from models.model import CNNModel
+
+source_dataset_name = "MNIST"
+target_dataset_name = "mnist_m"
+source_image_root = os.path.join("..", "dataset", source_dataset_name)
+target_image_root = os.path.join("..", "dataset", target_dataset_name)
+model_root = os.path.join("..", "models")
 cuda = True
 cudnn.benchmark = True
 lr = 1e-3
@@ -28,44 +29,44 @@ torch.manual_seed(manual_seed)
 
 # load data
 
-img_transform_source = transforms.Compose([
-    transforms.Resize(image_size),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=(0.1307,), std=(0.3081,))
-])
+img_transform_source = transforms.Compose(
+    [
+        transforms.Resize(image_size),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=(0.1307,), std=(0.3081,)),
+    ]
+)
 
-img_transform_target = transforms.Compose([
-    transforms.Resize(image_size),
-    transforms.ToTensor(),
-    transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5))
-])
+img_transform_target = transforms.Compose(
+    [
+        transforms.Resize(image_size),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=(0.5, 0.5, 0.5), std=(0.5, 0.5, 0.5)),
+    ]
+)
 
 dataset_source = datasets.MNIST(
-    root='../dataset',
+    root="../dataset",
     train=True,
     transform=img_transform_source,
-    download=True
+    download=True,
 )
 
 dataloader_source = torch.utils.data.DataLoader(
-    dataset=dataset_source,
-    batch_size=batch_size,
-    shuffle=True,
-    num_workers=8)
+    dataset=dataset_source, batch_size=batch_size, shuffle=True, num_workers=8
+)
 
-train_list = os.path.join(target_image_root, 'mnist_m_train_labels.txt')
+train_list = os.path.join(target_image_root, "mnist_m_train_labels.txt")
 
 dataset_target = GetLoader(
-    data_root=os.path.join(target_image_root, 'mnist_m_train'),
+    data_root=os.path.join(target_image_root, "mnist_m_train"),
     data_list=train_list,
-    transform=img_transform_target
+    transform=img_transform_target,
 )
 
 dataloader_target = torch.utils.data.DataLoader(
-    dataset=dataset_target,
-    batch_size=batch_size,
-    shuffle=True,
-    num_workers=8)
+    dataset=dataset_target, batch_size=batch_size, shuffle=True, num_workers=8
+)
 
 # load model
 
@@ -88,17 +89,15 @@ for p in my_net.parameters():
 
 # training
 
-for epoch in xrange(n_epoch):
-
+for epoch in range(n_epoch):
     len_dataloader = min(len(dataloader_source), len(dataloader_target))
     data_source_iter = iter(dataloader_source)
     data_target_iter = iter(dataloader_target)
 
     i = 0
     while i < len_dataloader:
-
         p = float(i + epoch * len_dataloader) / n_epoch / len_dataloader
-        alpha = 2. / (1. + np.exp(-10 * p)) - 1
+        alpha = 2.0 / (1.0 + np.exp(-10 * p)) - 1
 
         # training model using source data
         data_source = data_source_iter.next()
@@ -151,12 +150,23 @@ for epoch in xrange(n_epoch):
 
         i += 1
 
-        print 'epoch: %d, [iter: %d / all %d], err_s_label: %f, err_s_domain: %f, err_t_domain: %f' \
-              % (epoch, i, len_dataloader, err_s_label.cpu().data.numpy(),
-                 err_s_domain.cpu().data.numpy(), err_t_domain.cpu().data.numpy())
+        print(
+            "epoch: %d, [iter: %d / all %d], err_s_label: %f, err_s_domain: %f, err_t_domain: %f"
+            % (
+                epoch,
+                i,
+                len_dataloader,
+                err_s_label.cpu().data.numpy(),
+                err_s_domain.cpu().data.numpy(),
+                err_t_domain.cpu().data.numpy(),
+            )
+        )
 
-    torch.save(my_net, '{0}/mnist_mnistm_model_epoch_{1}.pth'.format(model_root, epoch))
+    torch.save(
+        my_net,
+        "{0}/mnist_mnistm_model_epoch_{1}.pth".format(model_root, epoch),
+    )
     test(source_dataset_name, epoch)
     test(target_dataset_name, epoch)
 
-print 'done'
+print("done")
