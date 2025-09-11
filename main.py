@@ -13,9 +13,9 @@ from models.model import CNNModel
 
 source_dataset_name = "MNIST"
 target_dataset_name = "mnist_m"
-source_image_root = os.path.join("..", "dataset", source_dataset_name)
-target_image_root = os.path.join("..", "dataset", target_dataset_name)
-model_root = os.path.join("..", "models")
+source_image_root = os.path.join(".", "dataset", source_dataset_name)
+target_image_root = os.path.join(".", "dataset", target_dataset_name)
+model_root = os.path.join(".", "models")
 cuda = True
 cudnn.benchmark = True
 lr = 1e-3
@@ -46,7 +46,7 @@ img_transform_target = transforms.Compose(
 )
 
 dataset_source = datasets.MNIST(
-    root="../dataset",
+    root="./dataset",
     train=True,
     transform=img_transform_source,
     download=True,
@@ -100,7 +100,7 @@ for epoch in range(n_epoch):
         alpha = 2.0 / (1.0 + np.exp(-10 * p)) - 1
 
         # training model using source data
-        data_source = data_source_iter.next()
+        data_source = next(data_source_iter)
         s_img, s_label = data_source
 
         my_net.zero_grad()
@@ -126,7 +126,12 @@ for epoch in range(n_epoch):
         err_s_domain = loss_domain(domain_output, domain_label)
 
         # training model using target data
-        data_target = data_target_iter.next()
+        try:
+            data_target = next(data_source_iter)
+        except StopIteration:
+            data_source_iter = iter(dataloader_source)  # 重新创建迭代器
+            data_target = next(data_source_iter)
+
         t_img, _ = data_target
 
         batch_size = len(t_img)
@@ -163,9 +168,10 @@ for epoch in range(n_epoch):
         )
 
     torch.save(
-        my_net,
+        my_net.state_dict(),
         "{0}/mnist_mnistm_model_epoch_{1}.pth".format(model_root, epoch),
     )
+
     test(source_dataset_name, epoch)
     test(target_dataset_name, epoch)
 

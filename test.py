@@ -9,8 +9,8 @@ from torchvision import datasets
 def test(dataset_name, epoch):
     assert dataset_name in ['MNIST', 'mnist_m']
 
-    model_root = os.path.join('..', 'models')
-    image_root = os.path.join('..', 'dataset', dataset_name)
+    model_root = os.path.join('.', 'models')
+    image_root = os.path.join('.', 'dataset', dataset_name)
 
     cuda = True
     cudnn.benchmark = True
@@ -42,7 +42,7 @@ def test(dataset_name, epoch):
         )
     else:
         dataset = datasets.MNIST(
-            root='../dataset',
+            root='./dataset',
             train=False,
             transform=img_transform_source,
         )
@@ -56,13 +56,17 @@ def test(dataset_name, epoch):
 
     """ training """
 
-    my_net = torch.load(os.path.join(
-        model_root, 'mnist_mnistm_model_epoch_' + str(epoch) + '.pth'
-    ))
-    my_net = my_net.eval()
+    from models.model import CNNModel   # 确保和 main.py 里用的网络一致
+
+    model_path = os.path.join(model_root, 'mnist_mnistm_model_epoch_' + str(epoch) + '.pth')
+
+    my_net = CNNModel()                                # 先初始化网络
+    my_net.load_state_dict(torch.load(model_path))     # 再加载权重
+    my_net = my_net.eval()                             # 设置为 eval 模式
 
     if cuda:
         my_net = my_net.cuda()
+
 
     len_dataloader = len(dataloader)
     data_target_iter = iter(dataloader)
@@ -74,7 +78,7 @@ def test(dataset_name, epoch):
     while i < len_dataloader:
 
         # test model using target data
-        data_target = data_target_iter.next()
+        data_target = next(data_target_iter)
         t_img, t_label = data_target
 
         batch_size = len(t_label)

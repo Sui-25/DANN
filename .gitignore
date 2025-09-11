@@ -101,4 +101,9 @@ ENV/
 .mypy_cache/
 
 # dataset
-mnist_m/
+dataset/mnist_m/
+dataset/MNIST
+dataset/mnist_m.tar.gz
+
+# models_pth
+models/mnist_mnistm_model_epoch_*.pth
