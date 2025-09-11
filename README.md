@@ -1,9 +1,18 @@
+## About this Repository
+
+This repository is forked from the original DANN project.  
+The original implementation was based on **Python 2.7** and **PyTorch 1.0**.  
+In this version, the code has been refactored and successfully runs with **Python 3.12** and **PyTorch 2.6**.
+
+
 ## This is a pytorch implementation of the paper *[Unsupervised Domain Adaptation by Backpropagation](http://sites.skoltech.ru/compvision/projects/grl/)*
 
 
 #### Environment
-- Pytorch 1.0
-- Python 2.7
+- ~~Pytorch 1.0~~
+- ~~Python 2.7~~
+- Pytorch 2.6
+- Python 3.12
 
 #### Network Structure
 
